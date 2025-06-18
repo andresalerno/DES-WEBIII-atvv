@@ -2,9 +2,11 @@ package com.comunicacao.sistema.controles;
 
 import com.comunicacao.sistema.jwt.GeradorJwt;
 import com.comunicacao.sistema.entidades.Usuario;
+import com.comunicacao.sistema.enumeracoes.TipoUsuario;
 import com.comunicacao.sistema.repositorios.RepositorioUsuario;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping("/auth")
 public class ControleUsuario {
 
     @Autowired
@@ -30,22 +33,33 @@ public class ControleUsuario {
     @GetMapping("/usuarios")
     public ResponseEntity<?> obterUsuarios() {
         List<Usuario> usuarios = repositorio.findAll();
-        return new ResponseEntity<>(usuarios, HttpStatus.FOUND);
+        return new ResponseEntity<>(usuarios, HttpStatus.OK);
     }
 
     // Endpoint de login para gerar o JWT
-    @PostMapping("/auth/login")
+    @PostMapping("/login") // Esse mapeamento é para o POST de login
     public ResponseEntity<?> login(@RequestParam String username, @RequestParam String password) {
-        // Autenticação com o Spring Security
+        // Tenta autenticar o usuário com as credenciais fornecidas
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, password)
         );
 
-        // Depois de autenticar, gera o token JWT
-        String role = "USER"; // A role pode ser definida dinamicamente com base nas permissões do usuário
-        String token = geradorJwt.gerarToken(username, role);
+        // Verifica se o usuário existe na base de dados
+        Optional<Usuario> usuario = repositorio.findByUsername(username);
 
-        // Retorna o token JWT para o cliente
+        // Se o usuário não for encontrado, retorna uma resposta de erro
+        if (!usuario.isPresent()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário não encontrado");
+        }
+
+        // Converte o tipoUsuario para uma String
+        TipoUsuario tipoUsuario = usuario.get().getTipoUsuario();
+        String tipoUsuarioString = tipoUsuario.name(); // Converte o enum para String
+
+        // Se o usuário for encontrado, gera o token JWT
+        String token = geradorJwt.gerarToken(username, tipoUsuarioString);
+
+        // Retorna o token JWT na resposta
         return ResponseEntity.ok().body("Bearer " + token);
     }
 }

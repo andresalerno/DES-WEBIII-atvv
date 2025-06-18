@@ -10,7 +10,7 @@
     </parent>
 
     <groupId>com.comunicacao</groupId>
-    <artifactId>sistema</artifactId>
+    <artifactId>api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>sistema</name>
     <description>Microservice for Sistema API</description>
@@ -43,18 +43,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Swagger para documentação da API -->
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger2</artifactId>
-            <version>2.9.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger-ui</artifactId>
-            <version>2.9.2</version>
-        </dependency>
         
         <dependency>
 		    <groupId>org.springdoc</groupId>
