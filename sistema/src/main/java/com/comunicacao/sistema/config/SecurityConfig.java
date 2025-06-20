@@ -32,6 +32,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
             .authorizeRequests()
+            .antMatchers("/swagger-ui.html", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**", "/swagger-ui/**", "/auth/login").permitAll() // Permite o acesso ao Swagger sem autenticação
+            .antMatchers("/**").hasRole("ADMIN")
             .antMatchers("/auth/login").permitAll()  // Permite o acesso ao endpoint de login sem autenticação
             .anyRequest().authenticated()  // Exige autenticação para outros endpoints
             .and()
@@ -59,7 +61,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     // Configuração do PasswordEncoder
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(); // Criação de um PasswordEncoder usando BCrypt
     }
 
     // Configuração do CORS para permitir acesso do Swagger na porta 8081

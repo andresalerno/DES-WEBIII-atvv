@@ -8,9 +8,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,12 +27,14 @@ public class VendaController {
     private VendaRepositorio vendaRepository;
 
     // Endpoint para listar todas as vendas
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public List<Venda> listarVendas() {
         return vendaRepository.findAll();
     }
 
     // Endpoint para buscar uma venda por ID
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<Venda> buscarVenda(@PathVariable Long id) {
         Optional<Venda> venda = vendaRepository.findById(id);
@@ -36,6 +42,7 @@ public class VendaController {
     }
 
     // Endpoint para adicionar uma nova venda
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<Venda> adicionarVenda(@RequestBody @Valid Venda venda) {
         Venda vendaSalva = vendaRepository.save(venda);
@@ -43,6 +50,7 @@ public class VendaController {
     }
 
     // Endpoint para atualizar uma venda existente
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Venda> atualizarVenda(@PathVariable Long id, @RequestBody @Valid Venda venda) {
         if (vendaRepository.existsById(id)) {
@@ -55,6 +63,7 @@ public class VendaController {
     }
 
     // Endpoint para excluir uma venda
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluirVenda(@PathVariable Long id) {
         if (vendaRepository.existsById(id)) {
@@ -62,6 +71,32 @@ public class VendaController {
             return ResponseEntity.noContent().build(); // Retorna 204 No Content
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build(); // Retorna 404 Not Found
+        }
+    }
+    
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/empresa/{empresaId}/periodo")
+    public ResponseEntity<List<Venda>> listarVendasPorEmpresaEPeriodo(
+            @PathVariable Long empresaId,
+            @RequestParam("startDate") String startDateStr,
+            @RequestParam("endDate") String endDateStr) {
+
+        try {
+            // Converte as strings das datas para Date
+            Date startDate = new SimpleDateFormat("yyyy-MM-dd").parse(startDateStr);
+            Date endDate = new SimpleDateFormat("yyyy-MM-dd").parse(endDateStr);
+
+            // Busca as vendas da empresa dentro do intervalo de datas
+            List<Venda> vendas = vendaRepository.findByServicoMercadoria_Empresa_IdAndDataVendaBetween(
+                    empresaId, startDate, endDate);
+
+            if (vendas.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);  // Se não encontrar, retorna 404
+            } else {
+                return ResponseEntity.ok(vendas);  // Retorna a lista com status 200
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);  // Se houver erro no formato das datas
         }
     }
 }

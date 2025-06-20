@@ -1,5 +1,8 @@
 package com.comunicacao.api.controles;
 
+import com.comunicacao.api.dtos.ClienteDTO;
+import com.comunicacao.api.mappers.ClienteMapper;
+import com.comunicacao.api.mock.DataMock;
 import com.comunicacao.api.modelos.Cliente;
 import com.comunicacao.api.repositorio.ClienteRepositorio;
 
@@ -8,10 +11,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Tag(name = "Controle Cliente", description = "Gerencia os clientes do sistema")
 @RestController
@@ -19,41 +24,60 @@ import java.util.Optional;
 public class ClienteController {
 
     @Autowired
+    private ClienteMapper clienteMapper;
+	
+	@Autowired
     private ClienteRepositorio clienteRepository;
 
-    // Endpoint para listar todos os clientes
+	// Endpoint para listar todos os clientes
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public List<Cliente> listarClientes() {
-        return clienteRepository.findAll();
+    public ResponseEntity<List<ClienteDTO>> listarClientes() {
+        List<Cliente> clientes = clienteRepository.findAll();
+        List<ClienteDTO> clienteDTOs = clientes.stream()
+                                              .map(clienteMapper::toDTO)
+                                              .collect(Collectors.toList());
+        return ResponseEntity.ok(clienteDTOs);
     }
 
-    // Endpoint para buscar um cliente por ID
+ // Endpoint para buscar um cliente por ID
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
-    public ResponseEntity<Cliente> buscarCliente(@PathVariable Long id) {
+    public ResponseEntity<ClienteDTO> buscarCliente(@PathVariable Long id) {
         Optional<Cliente> cliente = clienteRepository.findById(id);
-        return cliente.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        return cliente.map(c -> ResponseEntity.ok(clienteMapper.toDTO(c)))
+                      .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     // Endpoint para adicionar um novo cliente
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<Cliente> adicionarCliente(@RequestBody @Valid Cliente cliente) {
+    public ResponseEntity<ClienteDTO> adicionarCliente(@RequestBody @Valid ClienteDTO clienteDTO) {
+        Cliente cliente = clienteMapper.toEntity(clienteDTO);
         Cliente clienteSalvo = clienteRepository.save(cliente);
-        return ResponseEntity.status(HttpStatus.CREATED).body(clienteSalvo);
+        ClienteDTO clienteResposta = clienteMapper.toDTO(clienteSalvo);
+        return ResponseEntity.status(HttpStatus.CREATED).body(clienteResposta);
     }
 
-    // Endpoint para atualizar um cliente existente
+
+ // Endpoint para atualizar um cliente existente
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<Cliente> atualizarCliente(@PathVariable Long id, @RequestBody @Valid Cliente cliente) {
+    public ResponseEntity<ClienteDTO> atualizarCliente(@PathVariable Long id, @RequestBody @Valid ClienteDTO clienteDTO) {
         if (clienteRepository.existsById(id)) {
-            cliente.setId(id);
+            Cliente cliente = clienteMapper.toEntity(clienteDTO);  // Converte ClienteDTO para Cliente
+            cliente.setId(id);  // Atualiza o ID antes de salvar
             Cliente clienteAtualizado = clienteRepository.save(cliente);
-            return ResponseEntity.ok(clienteAtualizado);
+            ClienteDTO clienteResposta = clienteMapper.toDTO(clienteAtualizado);  // Converte de volta para ClienteDTO
+            return ResponseEntity.ok(clienteResposta);
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 
-    // Endpoint para excluir um cliente
+
+ // Endpoint para excluir um cliente
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluirCliente(@PathVariable Long id) {
         if (clienteRepository.existsById(id)) {
@@ -63,4 +87,22 @@ public class ClienteController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
+    
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/empresa/{empresaId}/clientes")
+    public ResponseEntity<List<ClienteDTO>> listarClientesPorEmpresa(@PathVariable Long empresaId) {
+        List<Cliente> clientes = clienteRepository.findByEmpresaId(empresaId);
+        
+        if (clientes.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        List<ClienteDTO> clienteDTOs = clientes.stream()
+            .map(clienteMapper::toDTO) // Supondo que você tem um mapper para converter Cliente para ClienteDTO
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(clienteDTOs);
+    }
+
+
 }

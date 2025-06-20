@@ -1,6 +1,9 @@
 package com.comunicacao.sistema.jwt;
 
 import io.jsonwebtoken.Claims;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -9,6 +12,8 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 
 @Component
@@ -21,7 +26,14 @@ public class FiltroJwt extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, javax.servlet.http.HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        // Verifique se o caminho é o de geração do token e permita o acesso sem filtro
+        if (request.getRequestURI().startsWith("/auth") || request.getRequestURI().startsWith("/swagger-ui") || request.getRequestURI().startsWith("/error")) {
+            filterChain.doFilter(request, response); // Permite acesso sem autenticação
+            return;
+        }
+
+        // Caso contrário, o filtro JWT é aplicado
         String token = request.getHeader("Authorization");
 
         if (token != null && token.startsWith("Bearer ")) {
@@ -29,11 +41,13 @@ public class FiltroJwt extends OncePerRequestFilter {
             Claims claims = validadorJwt.validarToken(token);
             if (claims != null) {
                 // Defina as informações do usuário no contexto de segurança
-                request.setAttribute("username", claims.getSubject());
-                request.setAttribute("role", claims.get("role"));
+                String username = claims.getSubject();
+                String role = claims.get("role").toString();  // A role aqui
+                request.setAttribute("username", username);
+                request.setAttribute("role", role);
             }
         }
 
-        filterChain.doFilter(request, response);
+        filterChain.doFilter(request, response); // Continuação do fluxo
     }
 }

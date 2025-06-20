@@ -5,17 +5,21 @@ import com.comunicacao.sistema.entidades.Usuario;
 import com.comunicacao.sistema.enumeracoes.TipoUsuario;
 import com.comunicacao.sistema.repositorios.RepositorioUsuario;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Controle Autenticação", description = "Gerencia o processo de autenticação e geração de tokens JWT para usuários")
 @RestController
 @RequestMapping("/auth")
 public class ControleUsuario {
@@ -37,6 +41,7 @@ public class ControleUsuario {
     }
 
     // Endpoint de login para gerar o JWT
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/login") // Esse mapeamento é para o POST de login
     public ResponseEntity<?> login(@RequestParam String username, @RequestParam String password) {
         // Tenta autenticar o usuário com as credenciais fornecidas
@@ -54,10 +59,9 @@ public class ControleUsuario {
 
         // Converte o tipoUsuario para uma String
         TipoUsuario tipoUsuario = usuario.get().getTipoUsuario();
-        String tipoUsuarioString = tipoUsuario.name(); // Converte o enum para String
 
         // Se o usuário for encontrado, gera o token JWT
-        String token = geradorJwt.gerarToken(username, tipoUsuarioString);
+        String token = geradorJwt.gerarToken(username, tipoUsuario);
 
         // Retorna o token JWT na resposta
         return ResponseEntity.ok().body("Bearer " + token);
