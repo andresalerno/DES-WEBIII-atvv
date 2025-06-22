@@ -14,7 +14,7 @@ Fundador, Dev e Engenheiro de Software: André Salerno
 
 a) rodar o sistema
 
-<img src="./atvv-autobots-microservico-spring/assets/run_system.gif" alt="Run System" width="800">
+<img src="./assets/run_system.gif" alt="Run System" width="800">
 
 Teste realizado: OK
 
@@ -23,7 +23,7 @@ b) Chave segura
 - rodar a classe ChaveSegura.java dentro de config
 - inserir essa chave no arquivo application.properties
 
-<img src="./atvv-autobots-microservico-spring/assets/chave_segura.gif" alt="Run System" width="800">
+<img src="./assets/chave_segura.gif" alt="Run System" width="800">
 
 Teste realizado: OK
 
@@ -40,7 +40,7 @@ Observações importantes:
 - conforme arquivo application.properties, o usuário e senha são: admin / admin123
 - esse microserviço chamado sistema roda na porta 8082
 
-<img src="./atvv-autobots-microservico-spring/assets/localhost_8082.gif" alt="Run System" width="800">
+<img src="./assets/localhost_8082.gif" alt="Run System" width="800">
 
 Teste realizado: OK
 
@@ -52,11 +52,11 @@ Um aprendizado importante que tive é que esse button "Authorize" no Swagger nã
 
 Abaixo uma requisição para dois endpoints como exemplo sem o token JWT. Perceba que aparece o erro 403, ou seja a requisição foi compreendida mas nao foi executada.
 
-<img src="./atvv-autobots-microservico-spring/assets/sem_token.gif" alt="Run System" width="800">
+<img src="./assets/sem_token.gif" alt="Run System" width="800">
 
 Na demonstração abaixo já foi feita com a tokenização:
 
-<img src="./atvv-autobots-microservico-spring/assets/com_token.gif" alt="Run System" width="800">
+<img src="./assets/com_token.gif" alt="Run System" width="800">
 
 Testes realizados: OK
 
@@ -90,4 +90,4 @@ public ResponseEntity<List<ClienteDTO>> listarClientesPorEmpresa(@PathVariable L
 ```
 ## As tarefas podem ser encontradas na base da página em uma área chamada EndPoints Críticos
 
-<img src="./atvv-autobots-microservico-spring/assets/endpoint.png" alt="Run System" width="800">
+<img src="./assets/endpoint.png" alt="Run System" width="800">
