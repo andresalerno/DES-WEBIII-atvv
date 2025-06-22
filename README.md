@@ -39,6 +39,7 @@ Observações importantes:
 
 - conforme arquivo application.properties, o usuário e senha são: admin / admin123
 - esse microserviço chamado sistema roda na porta 8082
+- << ATENÇÃO >> o token gerado na porta 8081 (sistema) deve ser copia sem a palavra "Bearer" para que seja inserido no Authorize do Swagger
 
 <img src="./assets/localhost_8082.gif" alt="Run System" width="800">
 
