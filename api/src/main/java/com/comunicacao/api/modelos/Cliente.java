@@ -1,23 +1,15 @@
 package com.comunicacao.api.modelos;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-
-import lombok.Data;
-
-import java.util.List;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
+import javax.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.Setter;
+import java.util.Objects;
+import java.util.Set;
 
 @Entity
-@Data
+@Getter
+@Setter
 public class Cliente {
 
     @Id
@@ -28,17 +20,29 @@ public class Cliente {
     private String email;
 
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Documento> documentos;
+    private Set<Documento> documentos;
 
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Telefone> telefones;
+    private Set<Telefone> telefones;
 
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Endereco> enderecos;
+    private Set<Endereco> enderecos;
 
     @ManyToOne
     @JoinColumn(name = "empresa_id")
+    @JsonIgnore
     private Empresa empresa;
 
-    // getters and setters
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Cliente)) return false;
+        Cliente cliente = (Cliente) o;
+        return Objects.equals(id, cliente.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

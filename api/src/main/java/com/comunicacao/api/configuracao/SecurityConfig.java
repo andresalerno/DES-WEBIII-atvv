@@ -32,7 +32,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
             .authorizeRequests()
-            .antMatchers("/swagger-ui.html", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**", "/swagger-ui/**", "/auth/login").permitAll() // Permite o acesso ao Swagger sem autenticação
+            .antMatchers("/swagger-ui.html", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**", "/swagger-ui/**", "/auth/login", "http://localhost:8081/h2-console\r\n"
+            		+ "").permitAll() // Permite o acesso ao Swagger sem autenticação
             .antMatchers("/**").hasRole("ADMIN")
             .antMatchers("/auth/login").permitAll()  // Permite o acesso ao endpoint de login sem autenticação
             .anyRequest().authenticated()  // Exige autenticação para outros endpoints

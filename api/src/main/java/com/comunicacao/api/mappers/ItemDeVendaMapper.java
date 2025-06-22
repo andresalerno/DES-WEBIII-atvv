@@ -9,34 +9,43 @@ import org.springframework.stereotype.Component;
 @Component
 public class ItemDeVendaMapper {
 
-    // Método para converter ItemDeVenda para ItemDeVendaDTO
-    public ItemDeVendaDTO toDTO(ItemDeVenda itemDeVenda) {
+    // Converte de entidade para DTO
+    public ItemDeVendaDTO toDTO(ItemDeVenda item) {
+        if (item == null) return null;
+
         ItemDeVendaDTO dto = new ItemDeVendaDTO();
-        dto.setId(itemDeVenda.getId());
-        dto.setServicoMercadoriaId(itemDeVenda.getServicoMercadoria().getId());  // Mapeando o ID do ServicoMercadoria
-        dto.setVendaId(itemDeVenda.getVenda().getId());  // Mapeando o ID da Venda
-        dto.setQuantidade(itemDeVenda.getQuantidade());
-        dto.setValorTotal(itemDeVenda.getValorTotal());
+        dto.setId(item.getId());
+        dto.setQuantidade(item.getQuantidade());
+        dto.setValorTotal(item.getValorTotal());
+
+        // Segurança: verificação de nulo antes de acessar IDs
+        dto.setServicoMercadoriaId(item.getServicoMercadoria() != null ? item.getServicoMercadoria().getId() : null);
+        dto.setVendaId(item.getVenda() != null ? item.getVenda().getId() : null);
+
         return dto;
     }
 
-    // Método para converter ItemDeVendaDTO para ItemDeVenda
+    // Converte de DTO para entidade (apenas referências por ID)
     public ItemDeVenda toEntity(ItemDeVendaDTO dto) {
-        ItemDeVenda itemDeVenda = new ItemDeVenda();
-        itemDeVenda.setId(dto.getId());
-        
-        // Aqui, é necessário buscar a entidade ServicoMercadoria e Venda usando os IDs
-        ServicoMercadoria servicoMercadoria = new ServicoMercadoria();
-        servicoMercadoria.setId(dto.getServicoMercadoriaId());
-        itemDeVenda.setServicoMercadoria(servicoMercadoria);
-        
-        Venda venda = new Venda();
-        venda.setId(dto.getVendaId());
-        itemDeVenda.setVenda(venda);
-        
-        itemDeVenda.setQuantidade(dto.getQuantidade());
-        itemDeVenda.setValorTotal(dto.getValorTotal());
+        if (dto == null) return null;
 
-        return itemDeVenda;
+        ItemDeVenda item = new ItemDeVenda();
+        item.setId(dto.getId());
+        item.setQuantidade(dto.getQuantidade());
+        item.setValorTotal(dto.getValorTotal());
+
+        if (dto.getServicoMercadoriaId() != null) {
+            ServicoMercadoria servico = new ServicoMercadoria();
+            servico.setId(dto.getServicoMercadoriaId());
+            item.setServicoMercadoria(servico);
+        }
+
+        if (dto.getVendaId() != null) {
+            Venda venda = new Venda();
+            venda.setId(dto.getVendaId());
+            item.setVenda(venda);
+        }
+
+        return item;
     }
 }

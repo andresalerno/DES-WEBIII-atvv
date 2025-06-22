@@ -5,40 +5,53 @@ import com.comunicacao.api.modelos.ServicoMercadoria;
 import com.comunicacao.api.modelos.Empresa;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Component
 public class ServicoMercadoriaMapper {
 
-    // Converte ServicoMercadoria para ServicoMercadoriaDTO
-    public ServicoMercadoriaDTO toDTO(ServicoMercadoria servicoMercadoria) {
-        ServicoMercadoriaDTO dto = new ServicoMercadoriaDTO(
-            servicoMercadoria.getId(),
-            servicoMercadoria.getNome(),
-            servicoMercadoria.getDescricao(),
-            servicoMercadoria.getValor(),
-            servicoMercadoria.getDataCadastro(),
-            servicoMercadoria.getTipo(),
-            servicoMercadoria.getEmpresa() != null ? servicoMercadoria.getEmpresa().getId() : null // Mapeia o ID da empresa
+    // Converte entidade para DTO
+    public ServicoMercadoriaDTO toDTO(ServicoMercadoria entidade) {
+        if (entidade == null) return null;
+
+        return new ServicoMercadoriaDTO(
+            entidade.getId(),
+            entidade.getNome(),
+            entidade.getDescricao(),
+            entidade.getValor(),
+            entidade.getDataCadastro(),
+            entidade.getTipo(),
+            entidade.getEmpresa() != null ? entidade.getEmpresa().getId() : null
         );
-        return dto;
     }
 
-    // Converte ServicoMercadoriaDTO para ServicoMercadoria
-    public ServicoMercadoria toEntity(ServicoMercadoriaDTO dto) {
-        ServicoMercadoria servicoMercadoria = new ServicoMercadoria();
-        servicoMercadoria.setId(dto.getId());
-        servicoMercadoria.setNome(dto.getNome());
-        servicoMercadoria.setDescricao(dto.getDescricao());
-        servicoMercadoria.setValor(dto.getValor());
-        servicoMercadoria.setDataCadastro(dto.getDataCadastro());
-        servicoMercadoria.setTipo(dto.getTipo());
+    // Converte lista de entidades para lista de DTOs
+    public List<ServicoMercadoriaDTO> toDTO(List<ServicoMercadoria> entidades) {
+        if (entidades == null) return null;
+        return entidades.stream()
+                        .map(this::toDTO)
+                        .collect(Collectors.toList());
+    }
 
-        // Mapeia o ID da empresa para a entidade Empresa (cria a instância da empresa)
+    // Converte DTO para entidade
+    public ServicoMercadoria toEntity(ServicoMercadoriaDTO dto) {
+        if (dto == null) return null;
+
+        ServicoMercadoria entidade = new ServicoMercadoria();
+        entidade.setId(dto.getId());
+        entidade.setNome(dto.getNome());
+        entidade.setDescricao(dto.getDescricao());
+        entidade.setValor(dto.getValor());
+        entidade.setDataCadastro(dto.getDataCadastro());
+        entidade.setTipo(dto.getTipo());
+
         if (dto.getEmpresaId() != null) {
             Empresa empresa = new Empresa();
-            empresa.setId(dto.getEmpresaId()); // Definindo apenas o ID da empresa, sem carregar a entidade inteira
-            servicoMercadoria.setEmpresa(empresa);
+            empresa.setId(dto.getEmpresaId());
+            entidade.setEmpresa(empresa);
         }
 
-        return servicoMercadoria;
+        return entidade;
     }
 }

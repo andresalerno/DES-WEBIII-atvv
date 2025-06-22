@@ -3,14 +3,17 @@ package com.comunicacao.api.controles;
 import com.comunicacao.api.dtos.FuncionarioDTO;
 import com.comunicacao.api.mappers.FuncionarioMapper;
 import com.comunicacao.api.modelos.Funcionario;
+import com.comunicacao.api.repositorio.EmpresaRepositorio;
 import com.comunicacao.api.repositorio.FuncionarioRepositorio;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -28,6 +31,9 @@ public class FuncionarioController {
 
     @Autowired
     private FuncionarioRepositorio funcionarioRepository;
+    
+    @Autowired
+    private EmpresaRepositorio empresaRepository;
 
     // Endpoint para listar todos os funcionários
     @PreAuthorize("hasRole('ADMIN')")
@@ -92,17 +98,26 @@ public class FuncionarioController {
     
     // Endpoint para listar todos os funcionários de uma empresa
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/empresa/{empresaId}")
+    @Transactional(readOnly = true)
+    @Tag(name = "🚨 Endpoints Críticos")
+    @Operation(
+        summary = "🚨 [TAREFA] 2.Listar funcionários por empresa",
+        description = "⚠️ Este endpoint retorna todos os funcionários de uma empresa específica."
+    )
+    @GetMapping("/empresa/{empresaId}/funcionarios")
     public ResponseEntity<List<FuncionarioDTO>> listarFuncionariosPorEmpresa(@PathVariable Long empresaId) {
         List<Funcionario> funcionarios = funcionarioRepository.findByEmpresa_Id(empresaId);
+
         if (funcionarios.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);  // Se não encontrar, retorna 404
-        } else {
-            // Converter lista de funcionários para lista de DTOs
-            List<FuncionarioDTO> funcionariosDTO = funcionarios.stream()
-                    .map(funcionarioMapper::toDTO)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(funcionariosDTO);  // Retorna a lista de funcionários com status 200
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
+
+        List<FuncionarioDTO> funcionarioDTOs = funcionarios.stream()
+            .map(funcionarioMapper::toDTO)
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(funcionarioDTOs);
     }
+
+
 }

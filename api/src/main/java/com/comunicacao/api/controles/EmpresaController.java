@@ -2,11 +2,15 @@ package com.comunicacao.api.controles;
 
 
 import com.comunicacao.api.dtos.EmpresaDTO;
+import com.comunicacao.api.dtos.ServicoMercadoriaDTO;
 import com.comunicacao.api.mappers.EmpresaMapper;
+import com.comunicacao.api.mappers.ServicoMercadoriaMapper;
 import com.comunicacao.api.mock.DataMock;
 import com.comunicacao.api.modelos.Cliente;
 import com.comunicacao.api.modelos.Empresa;
+import com.comunicacao.api.modelos.Funcionario;
 import com.comunicacao.api.repositorio.EmpresaRepositorio;
+import com.comunicacao.api.repositorio.FuncionarioRepositorio;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -19,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Tag(name = "Controle Empresa", description = "Gerencia as empresas do sistema")
@@ -31,6 +36,12 @@ public class EmpresaController {
 	
     @Autowired
     private EmpresaRepositorio empresaRepository;
+    
+    @Autowired
+    private FuncionarioRepositorio funcionarioRepository;
+    
+    @Autowired
+    private ServicoMercadoriaMapper servicoMapper;
 
  // Endpoint para listar todas as empresas
     @PreAuthorize("hasRole('ADMIN')")
@@ -94,4 +105,14 @@ public class EmpresaController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
+    
+     
+    @GetMapping("/empresas/{id}/servicos-mercadorias")
+    public List<ServicoMercadoriaDTO> listarServicosPorEmpresa(@PathVariable Long id) {
+        Empresa empresa = empresaRepository.findById(id).orElseThrow();
+        return empresa.getServicosMercadorias().stream()
+            .map(servicoMapper::toDTO)
+            .collect(Collectors.toList());
+    }
+
 }

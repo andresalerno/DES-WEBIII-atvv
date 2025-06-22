@@ -9,6 +9,7 @@ import com.comunicacao.api.modelos.Documento;
 import com.comunicacao.api.modelos.Endereco;
 import com.comunicacao.api.modelos.Empresa;
 import com.comunicacao.api.modelos.Funcionario;
+import com.comunicacao.api.modelos.ItemDeVenda;
 import com.comunicacao.api.modelos.ServicoMercadoria;
 import com.comunicacao.api.modelos.Telefone;
 import com.comunicacao.api.modelos.Veiculo;
@@ -18,6 +19,7 @@ import com.comunicacao.api.repositorio.DocumentoRepositorio;
 import com.comunicacao.api.repositorio.EnderecoRepositorio;
 import com.comunicacao.api.repositorio.EmpresaRepositorio;
 import com.comunicacao.api.repositorio.FuncionarioRepositorio;
+import com.comunicacao.api.repositorio.ItemDeVendaRepositorio;
 import com.comunicacao.api.repositorio.ServicoMercadoriaRepositorio;
 import com.comunicacao.api.repositorio.TelefoneRepositorio;
 import com.comunicacao.api.repositorio.VeiculoRepositorio;
@@ -53,21 +55,22 @@ public class DataMock {
     private ServicoMercadoriaRepositorio servicoMercadoriaRepository;
     @Autowired
     private VendaRepositorio vendaRepository;
+    @Autowired
+    private ItemDeVendaRepositorio itemDeVendaRepository;
 
     private Random random = new Random();
 
     @PostConstruct
     public void init() {
-        gerarEmpresasMockadas(10);  // Gerar 5 empresas mockadas
-        gerarClientesMockados(10);  // Gerar 20 clientes mockados
-        gerarFuncionariosMockados(10);  // Gerar 10 funcionários mockados
-        gerarEnderecosMockados(10);  // Gerar 20 endereços mockados
-        gerarVeiculosMockados(10);  // Gerar 10 veículos mockados
-        gerarServicosMockados(10);  // Gerar 5 serviços/mercadorias mockados
-        gerarVendasMockadas(10);  // Gerar documentos mockados para clientes
+        gerarEmpresasMockadas(5);  // Gerar 5 empresas mockadas
+        gerarClientesMockados(5);  // Gerar 20 clientes mockados
+        gerarFuncionariosMockados(5);  // Gerar 10 funcionários mockados
+        gerarEnderecosMockados(5);  // Gerar 20 endereços mockados
+        gerarVeiculosMockados(5);  // Gerar 10 veículos mockados
+        gerarServicosMockados(5);  // Gerar 5 serviços/mercadorias mockados
+        gerarVendasMockadas(5);  // Gerar documentos mockados para clientes
         gerarDocumentosMockados();  // Gerar documentos mockados para clientes
         gerarTelefonesMockados();  // Gerar telefones mockados
-        gerarVendasMockadas(10);  // Gerar vendas mockadas
     }
 
     // Gerar empresas mockadas
@@ -242,42 +245,56 @@ public class DataMock {
         enderecoRepository.save(endereco);
     }
     
+    // Gerar vendas mockadas
  // Gerar vendas mockadas
- // Gerar vendas mockadas
-    public void gerarVendasMockadas(int quantidade) {
-        for (int i = 1; i <= quantidade; i++) {
+    public void gerarVendasMockadas(int quantidadeVdas) {
+        List<Cliente> clientes = clienteRepository.findAll();
+        List<ServicoMercadoria> servicos = servicoMercadoriaRepository.findAll();
+
+        if (clientes.isEmpty() || servicos.isEmpty()) {
+            System.err.println("Clientes ou serviços não disponíveis para gerar vendas.");
+            return;
+        }
+
+        for (int i = 0; i < quantidadeVdas; i++) {
             Venda venda = new Venda();
-
-            // Associar um cliente aleatório
-            Cliente cliente = clienteRepository.findById((long) (random.nextInt(9) + 1)).orElse(null); // 20 clientes mockados
-            if (cliente != null) {
-                venda.setCliente(cliente);
-            } else {
-                // Caso o cliente não seja encontrado, pode pular a venda ou criar um comportamento alternativo.
-                continue;
-            }
-
-            // Associar um serviço/mercadoria aleatório
-            ServicoMercadoria servicoMercadoria = servicoMercadoriaRepository.findById((long) (random.nextInt(5) + 1)).orElse(null); // 5 serviços mockados
-            if (servicoMercadoria != null) {
-                venda.setServicoMercadoria(servicoMercadoria);
-            } else {
-                // Caso o serviço/mercadoria não seja encontrado, pode pular a venda ou criar um comportamento alternativo.
-                continue;
-            }
-
-            // Gerar um valor aleatório para a venda
-            venda.setValor(random.nextDouble() * 1000);  // Valor aleatório até 1000
-
-            // Definir a data da venda para o atual
+            venda.setCliente(clientes.get(random.nextInt(clientes.size())));
             venda.setDataVenda(new Date());
 
-            // Salvar a venda no repositório
+            // Lista de itens de venda
+            int quantidadeItens = 1 + random.nextInt(3); // 1 a 3 itens por venda
+            double valorTotal = 0.0;
+
+            List<ItemDeVenda> itens = new java.util.ArrayList<>();
+
+            for (int j = 0; j < quantidadeItens; j++) {
+                ServicoMercadoria servico = servicos.get(random.nextInt(servicos.size()));
+                int quantidade = 1 + random.nextInt(5);
+                double totalItem = servico.getValor() * quantidade;
+
+                ItemDeVenda item = new ItemDeVenda();
+                item.setServicoMercadoria(servico);
+                item.setVenda(venda); // importante
+                item.setQuantidade(quantidade);
+                item.setValorTotal(totalItem);
+
+                valorTotal += totalItem;
+                itens.add(item);
+            }
+
+            // Define o primeiro serviço como o serviço principal da venda
+            if (!itens.isEmpty()) {
+                venda.setServicoMercadoria(itens.get(0).getServicoMercadoria());
+            }
+
+            venda.setItens(itens);        // Associa os itens à venda
+            venda.setValor(valorTotal);   // Valor total da venda
+
             try {
-                vendaRepository.save(venda);
+                vendaRepository.save(venda);         // Salva a venda
+                itemDeVendaRepository.saveAll(itens); // Salva os itens (com FK da venda)
             } catch (Exception e) {
-                // Log de erro caso ocorra uma falha ao salvar a venda
-                System.err.println("Erro ao salvar a venda: " + e.getMessage());
+                System.err.println("Erro ao salvar venda mockada: " + e.getMessage());
             }
         }
     }

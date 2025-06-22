@@ -4,7 +4,6 @@ import com.comunicacao.api.dtos.TelefoneDTO;
 import com.comunicacao.api.modelos.Telefone;
 import com.comunicacao.api.modelos.Cliente;
 import com.comunicacao.api.modelos.Funcionario;
-
 import org.springframework.stereotype.Component;
 
 @Component
@@ -12,31 +11,26 @@ public class TelefoneMapper {
 
     // Converte Telefone para TelefoneDTO
     public TelefoneDTO toDTO(Telefone telefone) {
-        TelefoneDTO dto = new TelefoneDTO();
-        dto.setId(telefone.getId());
-        dto.setTipo(telefone.getTipo());
-        dto.setNumero(telefone.getNumero());
+        if (telefone == null) return null;
 
-        // Apenas o ID do cliente e funcionário, não a entidade inteira
-        if (telefone.getCliente() != null) {
-            dto.setClienteId(telefone.getCliente().getId());
-        }
-
-        if (telefone.getFuncionario() != null) {
-            dto.setFuncionarioId(telefone.getFuncionario().getId());
-        }
-
-        return dto;
+        return new TelefoneDTO(
+            telefone.getId(),
+            telefone.getTipo(),
+            telefone.getNumero(),
+            telefone.getCliente() != null ? telefone.getCliente().getId() : null,
+            telefone.getFuncionario() != null ? telefone.getFuncionario().getId() : null
+        );
     }
 
     // Converte TelefoneDTO para Telefone
     public Telefone toEntity(TelefoneDTO dto) {
+        if (dto == null) return null;
+
         Telefone telefone = new Telefone();
         telefone.setId(dto.getId());
         telefone.setTipo(dto.getTipo());
         telefone.setNumero(dto.getNumero());
 
-        // Converte apenas os IDs para entidades, caso necessário
         if (dto.getClienteId() != null) {
             Cliente cliente = new Cliente();
             cliente.setId(dto.getClienteId());

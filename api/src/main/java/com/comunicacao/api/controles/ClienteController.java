@@ -6,13 +6,18 @@ import com.comunicacao.api.mock.DataMock;
 import com.comunicacao.api.modelos.Cliente;
 import com.comunicacao.api.repositorio.ClienteRepositorio;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import org.springframework.transaction.annotation.Transactional;
+
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
@@ -88,21 +93,31 @@ public class ClienteController {
         }
     }
     
+    
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional(readOnly = true)
+    @Tag(name = "🚨 Endpoints Críticos")
+    @Operation(
+        summary = "🚨 [TAREFA] 1.Listar clientes por empresa",
+        description = "⚠️ Este endpoint retorna todos os clientes de uma empresa específica."
+    )
     @GetMapping("/empresa/{empresaId}/clientes")
     public ResponseEntity<List<ClienteDTO>> listarClientesPorEmpresa(@PathVariable Long empresaId) {
-        List<Cliente> clientes = clienteRepository.findByEmpresaId(empresaId);
-        
-        if (clientes.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
-
-        List<ClienteDTO> clienteDTOs = clientes.stream()
-            .map(clienteMapper::toDTO) // Supondo que você tem um mapper para converter Cliente para ClienteDTO
-            .collect(Collectors.toList());
-
-        return ResponseEntity.ok(clienteDTOs);
+        List<Cliente> clientes = clienteRepository.findByEmpresa_Id(empresaId);
+        return ResponseEntity.ok(clienteMapper.toDTO(clientes));
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 }

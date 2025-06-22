@@ -7,12 +7,14 @@ import com.comunicacao.api.modelos.Veiculo;
 import com.comunicacao.api.repositorio.EmpresaRepositorio;
 import com.comunicacao.api.repositorio.VeiculoRepositorio;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -109,16 +111,24 @@ public class VeiculoController {
 
     // Endpoint para listar todos os veículos de uma empresa
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional(readOnly = true)
+    @Tag(name = "🚨 Endpoints Críticos")
+    @Operation(
+        summary = "🚨 [TAREFA] 5.Listar veículos atendidos por empresa",
+        description = "⚠️ Este endpoint retorna todos os clientes de uma empresa específica."
+    )
     @GetMapping("/empresa/{empresaId}")
     public ResponseEntity<List<VeiculoDTO>> listarVeiculosPorEmpresa(@PathVariable Long empresaId) {
         List<Veiculo> veiculos = veiculoRepository.findByEmpresaId(empresaId);
+
         if (veiculos.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);  // Se não encontrar, retorna 404
-        } else {
-            List<VeiculoDTO> veiculosDTO = veiculos.stream()
-                                                   .map(veiculoMapper::toDTO)
-                                                   .collect(Collectors.toList());
-            return ResponseEntity.ok(veiculosDTO);  // Retorna a lista de veículos com status 200
+            return ResponseEntity.noContent().build();
         }
+
+        List<VeiculoDTO> dtoList = veiculos.stream()
+            .map(veiculoMapper::toDTO)
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtoList);
     }
 }

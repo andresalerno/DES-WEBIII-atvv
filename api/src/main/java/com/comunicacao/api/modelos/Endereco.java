@@ -6,6 +6,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.JoinColumn;
 
 import com.comunicacao.api.enumeracoes.TipoEndereco;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Data;
 
@@ -43,5 +44,6 @@ public class Endereco {
 
     @ManyToOne
     @JoinColumn(name = "funcionario_id")  // Referência ao Funcionario
+    @JsonIgnore
     private Funcionario funcionario;
 }

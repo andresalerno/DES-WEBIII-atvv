@@ -1,15 +1,17 @@
 package com.comunicacao.api.modelos;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
-import lombok.Data;
+import javax.persistence.*;
 
 @Entity
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ItemDeVenda {
 
     @Id
@@ -25,6 +27,4 @@ public class ItemDeVenda {
     private Integer quantidade;
 
     private Double valorTotal;
-
-    // Getters and Setters
 }

@@ -1,14 +1,19 @@
 package com.comunicacao.api.controles;
 
+import com.comunicacao.api.dtos.VendaDTO;
+import com.comunicacao.api.mappers.VendaMapper;
 import com.comunicacao.api.modelos.Venda;
 import com.comunicacao.api.repositorio.VendaRepositorio;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -17,6 +22,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Tag(name = "Controle Venda", description = "Gerencia as vendas do sistema")
 @RestController
@@ -25,13 +31,22 @@ public class VendaController {
 
     @Autowired
     private VendaRepositorio vendaRepository;
+    
+    @Autowired
+    private VendaMapper vendaMapper;
 
     // Endpoint para listar todas as vendas
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public List<Venda> listarVendas() {
-        return vendaRepository.findAll();
+    public ResponseEntity<List<VendaDTO>> listarVendas() {
+        List<Venda> vendas = vendaRepository.findAll();
+        List<VendaDTO> dtos = vendas.stream()
+                .map(vendaMapper::toDTO)
+                .toList();
+
+        return ResponseEntity.ok(dtos);
     }
+
 
     // Endpoint para buscar uma venda por ID
     @PreAuthorize("hasRole('ADMIN')")
@@ -75,28 +90,30 @@ public class VendaController {
     }
     
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional(readOnly = true)
+    @Tag(name = "🚨 Endpoints Críticos")
+    @Operation(
+        summary = "🚨 [TAREFA] 4.Listar vendas por empresa e período",
+        description = "⚠️ Retorna todas as vendas de uma empresa em um intervalo de datas (formato: yyyy-MM-dd)"
+    )
     @GetMapping("/empresa/{empresaId}/periodo")
-    public ResponseEntity<List<Venda>> listarVendasPorEmpresaEPeriodo(
+    public ResponseEntity<List<VendaDTO>> listarVendasPorEmpresaEPeriodo(
             @PathVariable Long empresaId,
-            @RequestParam("startDate") String startDateStr,
-            @RequestParam("endDate") String endDateStr) {
+            @RequestParam("startDate") @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam("endDate") @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
 
-        try {
-            // Converte as strings das datas para Date
-            Date startDate = new SimpleDateFormat("yyyy-MM-dd").parse(startDateStr);
-            Date endDate = new SimpleDateFormat("yyyy-MM-dd").parse(endDateStr);
+        List<Venda> vendas = vendaRepository
+            .findByServicoMercadoria_Empresa_IdAndDataVendaBetween(empresaId, startDate, endDate);
 
-            // Busca as vendas da empresa dentro do intervalo de datas
-            List<Venda> vendas = vendaRepository.findByServicoMercadoria_Empresa_IdAndDataVendaBetween(
-                    empresaId, startDate, endDate);
-
-            if (vendas.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);  // Se não encontrar, retorna 404
-            } else {
-                return ResponseEntity.ok(vendas);  // Retorna a lista com status 200
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);  // Se houver erro no formato das datas
+        if (vendas.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(List.of());
         }
+
+        List<VendaDTO> dtoList = vendas.stream()
+            .map(vendaMapper::toDTO)
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtoList);
     }
+
 }

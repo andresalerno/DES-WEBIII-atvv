@@ -1,42 +1,34 @@
 package com.comunicacao.api.mappers;
 
 import com.comunicacao.api.dtos.DocumentoDTO;
-import com.comunicacao.api.modelos.Documento;
 import com.comunicacao.api.modelos.Cliente;
+import com.comunicacao.api.modelos.Documento;
 import com.comunicacao.api.modelos.Funcionario;
-
 import org.springframework.stereotype.Component;
 
 @Component
 public class DocumentoMapper {
 
-    // Converte Documento para DocumentoDTO
+    // Converte Documento → DocumentoDTO
     public DocumentoDTO toDTO(Documento documento) {
         DocumentoDTO dto = new DocumentoDTO();
         dto.setId(documento.getId());
         dto.setTipo(documento.getTipo());
         dto.setNumero(documento.getNumero());
 
-        // Apenas o ID do cliente e funcionário, não a entidade inteira
-        if (documento.getCliente() != null) {
-            dto.setClienteId(documento.getCliente().getId());
-        }
-
-        if (documento.getFuncionario() != null) {
-            dto.setFuncionarioId(documento.getFuncionario().getId());
-        }
+        dto.setClienteId(documento.getCliente() != null ? documento.getCliente().getId() : null);
+        dto.setFuncionarioId(documento.getFuncionario() != null ? documento.getFuncionario().getId() : null);
 
         return dto;
     }
 
-    // Converte DocumentoDTO para Documento
+    // Converte DocumentoDTO → Documento
     public Documento toEntity(DocumentoDTO dto) {
         Documento documento = new Documento();
         documento.setId(dto.getId());
         documento.setTipo(dto.getTipo());
         documento.setNumero(dto.getNumero());
 
-        // Converte apenas os IDs para entidades, caso necessário
         if (dto.getClienteId() != null) {
             Cliente cliente = new Cliente();
             cliente.setId(dto.getClienteId());

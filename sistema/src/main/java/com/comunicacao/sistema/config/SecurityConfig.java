@@ -32,15 +32,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
             .authorizeRequests()
-            .antMatchers("/swagger-ui.html", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**", "/swagger-ui/**", "/auth/login").permitAll() // Permite o acesso ao Swagger sem autenticação
-            .antMatchers("/**").hasRole("ADMIN")
-            .antMatchers("/auth/login").permitAll()  // Permite o acesso ao endpoint de login sem autenticação
-            .anyRequest().authenticated()  // Exige autenticação para outros endpoints
+            .antMatchers("/swagger-ui.html", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**", "/swagger-ui/**", "/auth/login").permitAll() // Permite o acesso ao Swagger e ao login sem autenticação
+            .antMatchers("/**").authenticated() // Exige autenticação para outros endpoints, após o login
+            .anyRequest().authenticated()  // Exige autenticação para qualquer outra requisição
             .and()
-            .addFilterBefore(filtroJwt, UsernamePasswordAuthenticationFilter.class)  // Adiciona o filtro JWT antes do filtro de autenticação
+            .addFilterBefore(filtroJwt, UsernamePasswordAuthenticationFilter.class)  // Adiciona o filtro JWT depois que o usuário estiver autenticado
             .cors(); // Habilita CORS para o Swagger
-
     }
+
 
     // Configuração do AuthenticationManager
     @Override

@@ -1,26 +1,37 @@
 package com.comunicacao.api.dtos;
 
 import java.util.Date;
+import java.util.List;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;  // Importando a anotação Lombok
+import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor  // Gera o construtor sem argumentos
+@NoArgsConstructor
+@AllArgsConstructor
 public class VendaDTO {
 
+    @Schema(example = "1", description = "ID da venda")
     private Long id;
-    private Long servicoMercadoriaId; // ID do serviço/mercadoria associado
-    private Long clienteId; // ID do cliente associado
+
+    @Schema(example = "5", description = "ID do serviço ou mercadoria vendido (opcional se for usado item)")
+    private Long servicoMercadoriaId;
+
+    @Schema(example = "3", description = "ID do cliente que realizou a compra")
+    private Long clienteId;
+
+    @Schema(example = "250.00", description = "Valor total da venda")
     private Double valor;
+
+    @Schema(example = "2024-06-01", description = "Data da venda")
     private Date dataVenda;
 
-    // Construtor com os parâmetros necessários para o mapeamento
-    public VendaDTO(Long id, Long servicoMercadoriaId, Long clienteId, Double valor, Date dataVenda) {
-        this.id = id;
-        this.servicoMercadoriaId = servicoMercadoriaId;
-        this.clienteId = clienteId;
-        this.valor = valor;
-        this.dataVenda = dataVenda;
-    }
+    @Schema(description = "Itens que compõem a venda")
+    private List<ItemDeVendaDTO> itens; // ✅ agora a venda tem itens
+    
+    @Schema(example = "1", description = "ID da empresa vinculada ao serviço")
+    private Long empresaId;
+
 }

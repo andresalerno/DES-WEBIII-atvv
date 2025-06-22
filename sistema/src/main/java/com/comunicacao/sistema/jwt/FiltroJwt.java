@@ -27,27 +27,26 @@ public class FiltroJwt extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // Verifique se o caminho é o de geração do token e permita o acesso sem filtro
-        if (request.getRequestURI().startsWith("/auth") || request.getRequestURI().startsWith("/swagger-ui") || request.getRequestURI().startsWith("/error")) {
+        // Permite acesso ao login sem autenticação JWT
+        if (request.getRequestURI().startsWith("/auth/login") || request.getRequestURI().startsWith("/swagger-ui")) {
             filterChain.doFilter(request, response); // Permite acesso sem autenticação
             return;
         }
 
-        // Caso contrário, o filtro JWT é aplicado
+        // Aqui, o filtro JWT será aplicado às requisições com token JWT no cabeçalho
         String token = request.getHeader("Authorization");
-
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7);  // Remove o prefixo "Bearer "
             Claims claims = validadorJwt.validarToken(token);
             if (claims != null) {
-                // Defina as informações do usuário no contexto de segurança
+                // Se o token for válido, configura o contexto de segurança
                 String username = claims.getSubject();
                 String role = claims.get("role").toString();  // A role aqui
-                request.setAttribute("username", username);
-                request.setAttribute("role", role);
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username, null, AuthorityUtils.createAuthorityList(role));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }
 
-        filterChain.doFilter(request, response); // Continuação do fluxo
+        filterChain.doFilter(request, response); // Continua o fluxo da requisição
     }
 }

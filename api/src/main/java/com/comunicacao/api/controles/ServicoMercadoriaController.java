@@ -5,12 +5,14 @@ import com.comunicacao.api.mappers.ServicoMercadoriaMapper;
 import com.comunicacao.api.modelos.ServicoMercadoria;
 import com.comunicacao.api.repositorio.ServicoMercadoriaRepositorio;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -28,6 +30,7 @@ public class ServicoMercadoriaController {
 
     @Autowired
     private ServicoMercadoriaRepositorio servicoMercadoriaRepository;
+    
 
  // Endpoint para listar todos os serviços/mercadorias
     @PreAuthorize("hasRole('ADMIN')")
@@ -86,17 +89,16 @@ public class ServicoMercadoriaController {
     
     // Endpoint para listar todos os serviços e mercadorias por empresa (loja)
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional(readOnly = true)
+    @Tag(name = "🚨 Endpoints Críticos")
+    @Operation(
+        summary = "🚨 [TAREFA] 3.Listar serviços/mercadorias por empresa",
+        description = "⚠️ Retorna todos os serviços e mercadorias da empresa com informações completas."
+    )
     @GetMapping("/empresa/{empresaId}")
-    public ResponseEntity<List<ServicoMercadoriaDTO>> listarServicosMercadoriasPorEmpresa(@PathVariable Long empresaId) {
+    public ResponseEntity<List<ServicoMercadoriaDTO>> listarPorEmpresa(@PathVariable Long empresaId) {
         List<ServicoMercadoria> servicosMercadorias = servicoMercadoriaRepository.findByEmpresaId(empresaId);
-        if (servicosMercadorias.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);  // Se não encontrar, retorna 404
-        } else {
-            // Mapear os serviços/mercadorias para DTO
-            List<ServicoMercadoriaDTO> dtoList = servicosMercadorias.stream()
-                                                                    .map(servicoMercadoriaMapper::toDTO)
-                                                                    .collect(Collectors.toList());
-            return ResponseEntity.ok(dtoList);  // Retorna a lista com status 200
-        }
+        return ResponseEntity.ok(servicoMercadoriaMapper.toDTO(servicosMercadorias));
     }
+
 }

@@ -1,25 +1,27 @@
 package com.comunicacao.api.dtos;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor  // Gera construtor sem argumentos
+@AllArgsConstructor // Gera construtor com todos os argumentos
 public class VeiculoDTO {
 
+    @Schema(example = "10", description = "ID do veículo")
     private Long id;
+
+    @Schema(example = "Onix", description = "Modelo do veículo")
     private String modelo;
+
+    @Schema(example = "Chevrolet", description = "Marca do veículo")
     private String marca;
+
+    @Schema(example = "ABC-1234", description = "Placa do veículo")
     private String placa;
-    private Long empresaId;  // ID da empresa associada (não a entidade completa)
 
-    // Construtor sem argumentos para Lombok gerar automaticamente
-    public VeiculoDTO() {}
-
-    // Construtor com parâmetros para facilitar a criação de objetos
-    public VeiculoDTO(Long id, String modelo, String marca, String placa, Long empresaId) {
-        this.id = id;
-        this.modelo = modelo;
-        this.marca = marca;
-        this.placa = placa;
-        this.empresaId = empresaId;
-    }
+    @Schema(example = "1", description = "ID da empresa associada ao veículo")
+    private Long empresaId;
 }
