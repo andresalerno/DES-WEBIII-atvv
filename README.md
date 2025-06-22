@@ -29,7 +29,11 @@ Teste realizado: OK
 
 c) Realizar a autenticação no endpoint auth/login (Swagger)
 
+#Autenticação usuário
 Link: http://localhost:8082/swagger-ui/index.html
+
+#Regras de negócio
+Link: http://localhost:8081/swagger-ui/index.html
 
 Observações importantes:
 
